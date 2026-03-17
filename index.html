@@ -2,133 +2,107 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chromecast Video Player - Fixed</title>
-    <!-- Load Cast Framework properly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chromecast Player - Phone Compatible</title>
     <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f0f;
+            background: #0a0a0a;
+            color: #fff;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            color: #fff;
+            padding: 15px;
+            -webkit-tap-highlight-color: transparent;
         }
-
+        
         .container {
-            width: 100%;
-            max-width: 1000px;
+            max-width: 900px;
+            margin: 0 auto;
             background: #1a1a1a;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border-radius: 16px;
+            padding: 20px;
         }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #fff;
-            font-size: 1.8em;
+        
+        h1 { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            font-size: 1.5em;
         }
-
-        .debug-info {
+        
+        /* Mobile-optimized status bar */
+        .status-bar {
             background: #252525;
             padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-family: monospace;
-            font-size: 0.85em;
-            color: #888;
-            border-left: 3px solid #666;
-        }
-
-        .debug-info.error {
-            border-left-color: #ff4444;
-            color: #ff8888;
-        }
-
-        .debug-info.success {
-            border-left-color: #44ff44;
-            color: #88ff88;
-        }
-
-        .cast-section {
-            background: #252525;
-            padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
         }
-
-        .cast-button-container {
+        
+        .cast-wrapper {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
-
-        /* Force the cast button to be visible and styled */
+        
         google-cast-launcher {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             cursor: pointer;
             --connected-color: #00e676;
             --disconnected-color: #fff;
         }
-
-        .status-badge {
-            display: inline-flex;
+        
+        .badge {
+            padding: 8px 14px;
+            background: #333;
+            border-radius: 20px;
+            font-size: 0.85em;
+            display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            font-size: 0.9em;
         }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
+        
+        .dot {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: #ff4444;
+            transition: all 0.3s;
         }
-
-        .status-dot.connected {
-            background: #00e676;
-            box-shadow: 0 0 8px #00e676;
+        
+        .dot.connected { 
+            background: #00e676; 
+            box-shadow: 0 0 10px #00e676;
         }
-
-        .video-container {
+        
+        /* Video container */
+        .video-wrap {
             position: relative;
             background: #000;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             margin-bottom: 20px;
             aspect-ratio: 16/9;
         }
-
+        
         video {
             width: 100%;
             height: 100%;
             display: block;
+            object-fit: contain;
         }
-
-        .video-overlay {
+        
+        /* Cast overlay */
+        .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.95);
             display: none;
             flex-direction: column;
             align-items: center;
@@ -137,558 +111,583 @@
             text-align: center;
             padding: 20px;
         }
-
-        .video-overlay.active {
-            display: flex;
-        }
-
+        
+        .overlay.active { display: flex; }
+        
         .cast-icon {
-            font-size: 3em;
+            font-size: 4em;
             animation: pulse 2s infinite;
         }
-
+        
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.1); }
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
         }
-
+        
+        /* Mobile-optimized controls */
         .controls {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
-            padding: 15px;
-            background: #252525;
-            border-radius: 10px;
-            align-items: center;
-            flex-wrap: wrap;
+            margin-bottom: 20px;
         }
-
-        button {
+        
+        .btn {
             background: #333;
             border: none;
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 15px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 1em;
-            transition: all 0.2s;
+            font-size: 1.1em;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 5px;
+            transition: all 0.2s;
+            min-height: 50px;
         }
-
-        button:hover {
-            background: #444;
-            transform: translateY(-1px);
+        
+        .btn:active { transform: scale(0.95); background: #444; }
+        .btn.primary { background: #1a73e8; }
+        .btn.primary:active { background: #1557b0; }
+        .btn.danger { background: #dc3545; }
+        .btn.danger:active { background: #b02a37; }
+        .btn.success { background: #198754; }
+        
+        /* File upload area - PHONE KEY FEATURE */
+        .upload-area {
+            border: 3px dashed #444;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #0f0f0f;
+            transition: all 0.3s;
+            cursor: pointer;
         }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        button.primary {
-            background: #1a73e8;
-        }
-
-        button.primary:hover {
-            background: #1557b0;
-        }
-
-        button.danger {
-            background: #dc3545;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            min-width: 200px;
-            padding: 10px 15px;
-            border: 1px solid #444;
-            background: #1a1a1a;
-            color: #fff;
-            border-radius: 6px;
-            font-size: 0.95em;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
+        
+        .upload-area:active, .upload-area:hover {
             border-color: #1a73e8;
+            background: #1a1a2e;
         }
-
-        .url-section {
+        
+        .upload-area.has-file {
+            border-color: #00e676;
+            background: #0f2f1f;
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: #888;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .upload-text strong {
+            color: #fff;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        
+        #fileInput { display: none; }
+        
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+        
+        /* URL input */
+        .input-group {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
             flex-wrap: wrap;
         }
-
-        .presets {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            border: 2px solid #333;
+            background: #0a0a0a;
+            color: #fff;
+            border-radius: 12px;
+            font-size: 1em;
         }
-
-        .preset-chip {
-            background: #333;
-            border: 1px solid #444;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.85em;
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+        
+        /* Presets */
+        .section-title {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .chip {
+            background: #252525;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            text-align: center;
             cursor: pointer;
+            border: 1px solid #333;
             transition: all 0.2s;
         }
-
-        .preset-chip:hover {
-            background: #444;
-            border-color: #666;
+        
+        .chip:active { 
+            background: #333; 
+            border-color: #555;
+            transform: scale(0.98);
         }
-
+        
+        /* Phone stream section */
+        .stream-section {
+            background: #1a2a3a;
+            border: 1px solid #2a4a6a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stream-section h3 {
+            color: #4fc3f7;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .qr-placeholder {
+            width: 150px;
+            height: 150px;
+            background: #fff;
+            border-radius: 8px;
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 0.8em;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        /* Info boxes */
         .info-box {
             background: #1a3a4a;
             border: 1px solid #2a5a6a;
             padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
+            border-radius: 10px;
             font-size: 0.9em;
             line-height: 1.6;
+            margin-top: 15px;
         }
-
-        .info-box h3 {
-            margin-bottom: 10px;
-            color: #4fc3f7;
+        
+        .info-box h3 { 
+            color: #4fc3f7; 
+            margin-bottom: 8px;
+            font-size: 1em;
         }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #444;
-            border-radius: 2px;
-            margin-top: 10px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #1a73e8;
-            border-radius: 2px;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-
-        .time-display {
-            font-size: 0.85em;
+        
+        .log {
+            background: #0a0a0a;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8em;
             color: #888;
-            margin-top: 5px;
-            text-align: right;
+            margin-top: 10px;
+            min-height: 40px;
+            max-height: 100px;
+            overflow-y: auto;
         }
+        
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            h1 { font-size: 1.3em; }
+            .upload-area { padding: 20px 15px; }
+        }
+        
+        /* Hide scrollbar */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎬 Chromecast Player</h1>
+        <h1>📱 Chromecast Player</h1>
         
-        <div id="debugInfo" class="debug-info">
-            Initializing...
-        </div>
-
-        <div class="cast-section">
-            <div class="cast-button-container">
-                <!-- The Cast button will be injected here by the SDK -->
-                <google-cast-launcher id="castButton"></google-cast-launcher>
-                <span style="color: #666; font-size: 0.9em;">Click to cast</span>
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="cast-wrapper">
+                <google-cast-launcher id="castBtn"></google-cast-launcher>
+                <span style="color:#666;font-size:0.9em">Tap to cast</span>
             </div>
-            <div class="status-badge">
-                <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Disconnected</span>
+            <div class="badge">
+                <div class="dot" id="statusDot"></div>
+                <span id="statusText">Ready</span>
             </div>
         </div>
 
-        <div class="video-container" id="videoContainer">
-            <video id="localVideo" controls>
+        <!-- VIDEO FROM PHONE: File Upload -->
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+                <strong>Tap to select video from phone</strong>
+                Choose MP4, WebM, or MOV file from your device
+            </div>
+            <div class="file-info" id="fileInfo" style="display:none"></div>
+        </div>
+        <input type="file" id="fileInput" accept="video/*" onchange="handleFileSelect(event)">
+
+        <!-- Video Player -->
+        <div class="video-wrap">
+            <video id="video" playsinline webkit-playsinline>
                 <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
             </video>
             
-            <div class="video-overlay" id="castOverlay">
+            <div class="overlay" id="overlay">
                 <div class="cast-icon">📺</div>
                 <div>
-                    <div style="font-size: 1.2em; margin-bottom: 5px;">Casting to</div>
-                    <div style="font-size: 1.5em; color: #4fc3f7;" id="castDeviceName">Chromecast</div>
+                    <div style="font-size:1.2em;margin-bottom:5px">Playing on</div>
+                    <div style="font-size:1.5em;color:#4fc3f7" id="deviceName">Chromecast</div>
                 </div>
-                <button class="danger" onclick="stopCasting()">Stop Casting</button>
+                <button class="btn danger" onclick="stopCast()">Stop Casting</button>
             </div>
         </div>
 
-        <div class="progress-bar" id="progressBar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="time-display">
-            <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
-        </div>
-
-        <div class="controls" style="margin-top: 15px;">
-            <button onclick="togglePlay()" id="playBtn">▶ Play</button>
-            <button onclick="skip(-10)">⏮ 10s</button>
-            <button onclick="skip(10)">⏭ 10s</button>
-            <input type="range" id="volumeSlider" min="0" max="100" value="100" style="width: 100px;">
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn primary" onclick="togglePlay()" id="playBtn">▶ Play</button>
+            <button class="btn" onclick="skip(-10)">⏮ 10s</button>
+            <button class="btn" onclick="skip(10)">⏭ 10s</button>
+            <button class="btn" onclick="toggleMute()">🔊</button>
         </div>
 
-        <div class="url-section" style="margin-top: 20px;">
-            <input type="text" id="videoUrl" placeholder="Enter video URL (MP4)">
-            <button class="primary" onclick="loadVideo()">Load</button>
+        <!-- URL Input -->
+        <div class="section-title">Or enter video URL</div>
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="https://example.com/video.mp4">
+            <button class="btn primary" onclick="loadUrlInput()">Load</button>
         </div>
 
+        <!-- Presets -->
+        <div class="section-title">Sample Videos</div>
         <div class="presets">
-            <div class="preset-chip" onclick="loadPreset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')">Big Buck Bunny</div>
-            <div class="preset-chip" onclick="loadPreset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4')">Elephants Dream</div>
-            <div class="preset-chip" onclick="loadPreset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4')">For Bigger Blazes</div>
+            <div class="chip" onclick="loadUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')">Big Buck Bunny</div>
+            <div class="chip" onclick="loadUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4')">Elephants Dream</div>
+            <div class="chip" onclick="loadUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4')">For Bigger Blazes</div>
+            <div class="chip" onclick="loadUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4')">Tears of Steel</div>
         </div>
 
+        <!-- Phone to TV Instructions -->
         <div class="info-box">
-            <h3>⚠️ Requirements for Chromecast to work:</h3>
-            <ul style="margin-left: 20px; margin-top: 10px;">
-                <li><strong>HTTPS:</strong> Must be served over HTTPS (not HTTP) - except localhost</li>
-                <li><strong>Browser:</strong> Chrome, Edge, or Chromium-based browser only</li>
-                <li><strong>Network:</strong> Same WiFi network as Chromecast device</li>
-                <li><strong>SDK:</strong> Cast button appears automatically when devices are found</li>
-            </ul>
+            <h3>📲 How to cast from your phone:</h3>
+            <ol style="margin-left:20px;margin-top:10px;line-height:2">
+                <li><b>Same WiFi:</b> Connect phone & Chromecast to same network</li>
+                <li><b>Select video:</b> Tap "select video from phone" above OR enter URL</li>
+                <li><b>Tap cast icon:</b> Choose your Chromecast device</li>
+                <li><b>Control:</b> Use this screen as remote (play, pause, seek)</li>
+            </ol>
+            <div class="log" id="log">Ready. Select a video to begin.</div>
+        </div>
+
+        <!-- Important Note -->
+        <div class="info-box" style="background:#2a1a1a;border-color:#5a2a2a;margin-top:15px">
+            <h3 style="color:#ff6b6b">⚠️ Important for Phone Videos:</h3>
+            <p style="color:#ffaaaa;font-size:0.9em;margin-top:8px">
+                <b>Local phone files</b> can only be cast if your phone browser supports 
+                "tab casting" or if you upload to a cloud service first (Google Drive, 
+                Dropbox) and paste the direct link above.
+            </p>
         </div>
     </div>
 
     <script>
-        // Global variables
-        let castContext = null;
-        let castSession = null;
-        let remotePlayer = null;
-        let remotePlayerController = null;
+        // Cast variables
+        let castContext, castSession, remotePlayer, remotePlayerController;
         let isCasting = false;
-        let currentVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+        let currentUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+        let currentFile = null;
         
-        const video = document.getElementById('localVideo');
-        const debugInfo = document.getElementById('debugInfo');
+        const video = document.getElementById('video');
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
-        const castOverlay = document.getElementById('castOverlay');
-        const castDeviceName = document.getElementById('castDeviceName');
+        const overlay = document.getElementById('overlay');
+        const deviceName = document.getElementById('deviceName');
+        const log = document.getElementById('log');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInfo = document.getElementById('fileInfo');
 
-        // Initialize when page loads
-        window.addEventListener('load', function() {
-            log('Page loaded, waiting for Cast SDK...', 'info');
-            
-            // Check if we're on HTTPS or localhost
-            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-                log('ERROR: Must use HTTPS or localhost for Chromecast!', 'error');
-                return;
-            }
-
-            // Initialize Cast SDK
-            initializeCastSDK();
-        });
-
-        function log(message, type = 'info') {
-            console.log(`[Cast] ${message}`);
-            debugInfo.textContent = message;
-            debugInfo.className = 'debug-info ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+        function logger(msg) {
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML = `[${time}] ${msg}<br>` + log.innerHTML;
+            console.log('[Cast]', msg);
         }
 
-        function initializeCastSDK() {
-            // Check if cast framework is available
-            if (!window.chrome || !window.chrome.cast || !window.cast || !window.cast.framework) {
-                log('Cast SDK not loaded yet, retrying in 1s...', 'info');
-                setTimeout(initializeCastSDK, 1000);
-                return;
+        // Initialize Cast SDK
+        window.__onGCastApiAvailable = function(isAvailable) {
+            if (isAvailable) {
+                logger('Cast SDK ready');
+                initCast();
+            } else {
+                logger('Cast SDK not available - check HTTPS');
             }
+        };
 
+        function initCast() {
             try {
-                log('Cast SDK found, initializing...', 'info');
-                
-                // Get or create cast context
                 castContext = cast.framework.CastContext.getInstance();
-                
-                // Set options - using default media receiver
                 castContext.setOptions({
                     receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-                    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
-                    language: 'en-US',
-                    resumeSavedSession: true
+                    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
                 });
 
-                // Add event listeners
                 castContext.addEventListener(
                     cast.framework.CastContextEventType.CAST_STATE_CHANGED,
-                    handleCastStateChange
+                    onCastStateChange
                 );
-
+                
                 castContext.addEventListener(
                     cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-                    handleSessionStateChange
+                    onSessionChange
                 );
 
-                // Initialize remote player
                 remotePlayer = new cast.framework.RemotePlayer();
                 remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
                 
                 remotePlayerController.addEventListener(
                     cast.framework.RemotePlayerEventType.ANY_CHANGE,
-                    handleRemotePlayerChange
+                    onRemoteChange
                 );
 
-                log('Cast SDK initialized successfully! Looking for devices...', 'success');
-                
-                // Force a state check
-                handleCastStateChange({ castState: castContext.getCastState() });
+                logger('Tap cast button to connect');
 
-            } catch (error) {
-                log('Error initializing Cast: ' + error.message, 'error');
-                console.error(error);
+            } catch(e) {
+                logger('Error: ' + e.message);
             }
         }
 
-        function handleCastStateChange(event) {
-            const state = event.castState;
-            log('Cast state: ' + state, state === 'CONNECTED' ? 'success' : 'info');
+        function onCastStateChange(e) {
+            const state = e.castState;
             
-            switch(state) {
-                case cast.framework.CastState.NO_DEVICES_AVAILABLE:
-                    statusText.textContent = 'No devices found';
-                    statusDot.classList.remove('connected');
-                    break;
-                case cast.framework.CastState.NOT_CONNECTED:
-                    statusText.textContent = 'Ready to cast';
-                    statusDot.classList.remove('connected');
-                    break;
-                case cast.framework.CastState.CONNECTING:
-                    statusText.textContent = 'Connecting...';
-                    break;
-                case cast.framework.CastState.CONNECTED:
-                    statusText.textContent = 'Connected';
-                    statusDot.classList.add('connected');
-                    break;
+            if (state === 'CONNECTED') {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+                logger('Connected to Chromecast');
+            } else if (state === 'CONNECTING') {
+                statusText.textContent = 'Connecting...';
+            } else if (state === 'NO_DEVICES_AVAILABLE') {
+                statusText.textContent = 'No devices';
+                logger('No Chromecast found on network');
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Ready to cast';
             }
         }
 
-        function handleSessionStateChange(event) {
-            log('Session state: ' + event.sessionState, 'info');
-            
-            switch(event.sessionState) {
-                case cast.framework.SessionState.SESSION_STARTED:
-                case cast.framework.SessionState.SESSION_RESUMED:
-                    castSession = castContext.getCurrentSession();
-                    startCasting();
-                    break;
-                    
-                case cast.framework.SessionState.SESSION_ENDED:
-                    stopCasting();
-                    castSession = null;
-                    break;
+        function onSessionChange(e) {
+            if (e.sessionState === 'SESSION_STARTED' || e.sessionState === 'SESSION_RESUMED') {
+                castSession = castContext.getCurrentSession();
+                startCasting();
+            } else if (e.sessionState === 'SESSION_ENDED') {
+                stopCasting();
+                castSession = null;
             }
         }
 
         function startCasting() {
-            if (!castSession) return;
-            
             isCasting = true;
-            const deviceName = castSession.getCastDevice().friendlyName;
-            castDeviceName.textContent = deviceName;
-            castOverlay.classList.add('active');
+            const name = castSession.getCastDevice().friendlyName;
+            deviceName.textContent = name;
+            overlay.classList.add('active');
+            logger('Casting to: ' + name);
             
-            log('Casting to: ' + deviceName, 'success');
+            // If we have a local file, we need to handle it differently
+            if (currentFile && currentFile.startsWith('blob:')) {
+                logger('Local file detected - using current URL');
+                // Note: Local files can't be cast directly, user needs to use screen mirroring
+                // or upload to cloud first
+            }
             
-            // Load current video on Chromecast
-            loadMedia(currentVideoUrl, video.currentTime);
-            
-            // Pause local video
+            loadMedia(currentUrl, video.currentTime);
             video.pause();
-            updatePlayButton();
+            updatePlayBtn();
         }
 
         function stopCasting() {
             isCasting = false;
-            castOverlay.classList.remove('active');
-            log('Casting stopped', 'info');
-            
-            // Sync position back to local
-            if (remotePlayer.currentTime) {
-                video.currentTime = remotePlayer.currentTime;
-            }
-            updatePlayButton();
+            overlay.classList.remove('active');
+            if (remotePlayer.currentTime) video.currentTime = remotePlayer.currentTime;
+            logger('Stopped casting');
+            updatePlayBtn();
         }
 
-        function loadMedia(mediaUrl, currentTime = 0) {
-            if (!castSession) {
-                log('No active cast session', 'error');
-                return;
-            }
-
-            const mediaInfo = new chrome.cast.media.MediaInfo(mediaUrl, 'video/mp4');
+        function loadMedia(url, time = 0) {
+            if (!castSession) return;
+            
+            logger('Loading: ' + url.substring(0, 50) + '...');
+            
+            const mediaInfo = new chrome.cast.media.MediaInfo(url, 'video/mp4');
             mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
-            mediaInfo.metadata.title = 'Video';
+            mediaInfo.metadata.title = currentFile ? 'Phone Video' : 'Video';
             
             const request = new chrome.cast.media.LoadRequest(mediaInfo);
-            request.currentTime = currentTime;
+            request.currentTime = time;
             request.autoplay = true;
 
             castSession.loadMedia(request).then(
-                () => {
-                    log('Media loaded on Chromecast', 'success');
-                },
-                (errorCode) => {
-                    log('Error loading media: ' + errorCode, 'error');
+                () => logger('Playing on TV'),
+                (err) => {
+                    logger('Cast error: ' + err);
+                    alert('Cannot cast this video. Try a direct URL instead of local file.');
                 }
             );
         }
 
-        function handleRemotePlayerChange(event) {
+        function onRemoteChange(e) {
             if (!isCasting) return;
-            
-            // Update UI based on remote player state
-            if (event.type === 'CURRENT_TIME_CHANGED' || event.type === 'DURATION_CHANGED') {
-                updateProgress();
-            }
-            
-            if (event.type === 'IS_PAUSED_CHANGED') {
-                updatePlayButton();
-            }
+            if (e.type === 'IS_PAUSED_CHANGED') updatePlayBtn();
         }
 
-        // Local player controls
+        // PHONE FILE HANDLING
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            logger('Selected: ' + file.name);
+            
+            // Show file info
+            const size = (file.size / (1024*1024)).toFixed(2);
+            fileInfo.innerHTML = `
+                <strong>${file.name}</strong><br>
+                Size: ${size} MB | Type: ${file.type}
+            `;
+            fileInfo.style.display = 'block';
+            uploadArea.classList.add('has-file');
+            
+            // Create object URL for local playback
+            const blobUrl = URL.createObjectURL(file);
+            currentFile = blobUrl;
+            currentUrl = blobUrl;
+            
+            // Play locally
+            video.src = blobUrl;
+            video.play().then(() => {
+                updatePlayBtn();
+                logger('Playing locally. Tap cast button to send to TV.');
+                
+                // IMPORTANT: Show warning about local files
+                if (isCasting) {
+                    alert('Local files cannot be cast directly. Use Chrome browser menu (⋮) → "Cast" → "Cast screen" to mirror your phone, OR upload to Google Drive and paste the link.');
+                }
+            });
+        }
+
+        // Player controls
         function togglePlay() {
             if (isCasting && remotePlayerController) {
                 remotePlayerController.playOrPause();
             } else {
-                if (video.paused) {
-                    video.play();
-                } else {
-                    video.pause();
-                }
-                updatePlayButton();
+                video.paused ? video.play() : video.pause();
+                updatePlayBtn();
             }
         }
 
-        function updatePlayButton() {
+        function updatePlayBtn() {
             const btn = document.getElementById('playBtn');
-            if (isCasting) {
-                btn.textContent = remotePlayer.isPaused ? '▶ Play' : '⏸ Pause';
-            } else {
-                btn.textContent = video.paused ? '▶ Play' : '⏸ Pause';
-            }
+            const isPaused = isCasting ? remotePlayer.isPaused : video.paused;
+            btn.textContent = isPaused ? '▶ Play' : '⏸ Pause';
         }
 
-        function skip(seconds) {
+        function skip(sec) {
             if (isCasting && remotePlayerController) {
-                const newTime = remotePlayer.currentTime + seconds;
-                remotePlayer.currentTime = newTime;
+                remotePlayer.currentTime += sec;
                 remotePlayerController.seek();
             } else {
-                video.currentTime += seconds;
+                video.currentTime += sec;
             }
         }
 
-        function updateProgress() {
-            let current, duration;
-            
-            if (isCasting && remotePlayer) {
-                current = remotePlayer.currentTime || 0;
-                duration = remotePlayer.duration || 0;
+        function toggleMute() {
+            if (isCasting && remotePlayerController) {
+                // Chromecast mute
             } else {
-                current = video.currentTime || 0;
-                duration = video.duration || 0;
-            }
-            
-            const percent = duration ? (current / duration) * 100 : 0;
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('currentTime').textContent = formatTime(current);
-            document.getElementById('duration').textContent = formatTime(duration);
-        }
-
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Video loading
-        function loadVideo() {
-            const url = document.getElementById('videoUrl').value.trim();
-            if (url) {
-                loadPreset(url);
+                video.muted = !video.muted;
+                logger(video.muted ? 'Muted' : 'Unmuted');
             }
         }
 
-        function loadPreset(url) {
-            currentVideoUrl = url;
+        function loadUrlInput() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (url) loadUrl(url);
+        }
+
+        function loadUrl(url) {
+            currentUrl = url;
+            currentFile = null;
             video.src = url;
-            video.load();
+            uploadArea.classList.remove('has-file');
+            fileInfo.style.display = 'none';
             
             video.play().then(() => {
-                updatePlayButton();
-                if (isCasting) {
-                    loadMedia(url);
-                }
+                updatePlayBtn();
+                logger('Loaded: ' + url.substring(0, 30) + '...');
+                if (isCasting) loadMedia(url);
             }).catch(err => {
-                log('Error playing video: ' + err.message, 'error');
+                logger('Error loading: ' + err.message);
             });
         }
 
-        // Progress bar click
-        document.getElementById('progressBar').addEventListener('click', function(e) {
-            const rect = this.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            
-            if (isCasting && remotePlayerController && remotePlayer.duration) {
-                remotePlayer.currentTime = remotePlayer.duration * percent;
-                remotePlayerController.seek();
-            } else if (video.duration) {
-                video.currentTime = video.duration * percent;
-            }
-        });
-
-        // Volume control
-        document.getElementById('volumeSlider').addEventListener('input', function(e) {
-            const vol = e.target.value / 100;
-            if (isCasting && remotePlayerController) {
-                remotePlayer.volumeLevel = vol;
-                remotePlayerController.setVolumeLevel();
-            } else {
-                video.volume = vol;
-            }
-        });
-
-        // Local video events
-        video.addEventListener('timeupdate', updateProgress);
-        video.addEventListener('play', updatePlayButton);
-        video.addEventListener('pause', updatePlayButton);
-        video.addEventListener('loadedmetadata', updateProgress);
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
+        // Keyboard shortcuts (for desktop)
+        document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT') return;
-            
-            switch(e.code) {
-                case 'Space':
-                    e.preventDefault();
-                    togglePlay();
-                    break;
-                case 'ArrowLeft':
-                    skip(-10);
-                    break;
-                case 'ArrowRight':
-                    skip(10);
-                    break;
+            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+            if (e.code === 'ArrowLeft') skip(-10);
+            if (e.code === 'ArrowRight') skip(10);
+        });
+
+        // Touch gestures for mobile
+        let touchStartX = 0;
+        video.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        
+        video.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                skip(diff > 0 ? 10 : -10);
             }
         });
 
-        // Manual cast button click handler (backup)
-        document.getElementById('castButton').addEventListener('click', function() {
-            if (!castContext) {
-                log('Cast SDK not initialized yet', 'error');
-                return;
-            }
-            
-            // The SDK handles the click, but we log it
-            log('Cast button clicked', 'info');
-        });
+        video.addEventListener('play', updatePlayBtn);
+        video.addEventListener('pause', updatePlayBtn);
     </script>
 </body>
 </html>
